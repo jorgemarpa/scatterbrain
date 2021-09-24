@@ -150,35 +150,3 @@ class BackDrop(object):
 
     def plot(self):
         return
-
-
-# def fit_backdrop(fnames, test_frame=0):
-#     fnames = np.sort(fnames)
-#     f = load_image(fnames[test_frame])
-#     star_mask = get_star_mask(f)
-#     weights = cp.ones((2048, 2048))
-#     weights[~star_mask] = 1e5
-
-#     Arad = radial_design_matrix(weights=weights.ravel(), prior_mu=2, prior_sigma=3)
-#     Acart = cartesian_design_matrix(weights=weights.ravel(), prior_mu=2, prior_sigma=3)
-#     A1 = Arad.join(Acart)
-#     Aspline = spline_design_matrix(weights=weights.ravel(), prior_sigma=100)
-#     Astrap = strap_design_matrix(weights=weights.ravel(), prior_sigma=100)
-#     A2 = Aspline.join(Astrap)
-
-#     f_cuda = cp.zeros((len(fnames), 2048, 2048), dtype=cp.float32)
-#     f_cuda[test_frame] = f
-#     for tdx in tqdm(list(set(np.arange(len(fnames))) - set([test_frame])), desc='Reading files to memory'):
-#         f_cuda[tdx] = load_image(fnames[tdx])
-
-#     ws1 = cp.zeros((len(fnames), A1.shape[1]))
-#     ws2 = cp.zeros((len(fnames), A2.shape[1]))
-#     for tdx in tqdm(range(len(fnames))):
-#         # First fit
-#         ws1[tdx] = A1.fit_frame(cp.log10(f_cuda[tdx]))
-#         res = f_cuda[tdx] - cp.power(10, (A1.dot(ws1[tdx])).reshape((2048, 2048)))
-#         # Second fit
-#         ws2[tdx] = A2.fit_frame(res)
-
-
-#     return ws1, ws2
