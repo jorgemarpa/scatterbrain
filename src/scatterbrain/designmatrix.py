@@ -2,9 +2,14 @@
 try:
     import cupy as cp
     from cupy import sparse
+    from cupyx.lapack import posv as cholesky_solve
 except ImportError:
     import numpy as cp
     from scipy import sparse
+    from scipy.linalg import cho_factor, cho_solve
+
+    def cholesky_solve(sigma_w_inv, B):
+        return cho_solve(cho_factor(sigma_w_inv), B)
 
 
 from .utils import _spline_basis_vector
@@ -106,7 +111,17 @@ class design_matrix(ABC):
             self.AT.dot(flux.ravel() / self.sigma_f)
             + self.prior_mu / self.prior_sigma ** 2
         )
-        return cp.linalg.solve(self.sigma_w_inv, B)
+        return cholesky_solve(self.sigma_w_inv, B)
+
+    def fit_frames(self, flux_cube):
+        B = cp.asarray(
+            [
+                self.AT.dot(flux.ravel() / self.sigma_f)
+                + self.prior_mu / self.prior_sigma ** 2
+                for flux in flux_cube
+            ]
+        )
+        return cholesky_solve(self.sigma_w_inv, B)
 
     def dot(self, other):
         return self.A.dot(other)
