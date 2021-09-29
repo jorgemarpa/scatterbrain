@@ -1,7 +1,8 @@
 """basic hack utilities"""
 import os
+
 try:
-    if os.getenv('USE_CUPY') in ["True", "T", "true"]:
+    if os.getenv("USE_CUPY") in ["True", "T", "true"]:
         import cupy as xp
         from cupy import sparse
         from cupy.prof import TimeRangeDecorator
@@ -10,10 +11,8 @@ try:
 except ImportError:
     import numpy as xp
     from scipy import sparse
-    from cupy.prof import TimeRangeDecorator
 
-    
-@TimeRangeDecorator()
+
 def _spline_basis_vector(x, degree, i, knots):
     """Recursive function to create a single spline basis vector for an input x,
     for the ith knot.
@@ -53,12 +52,14 @@ def _spline_basis_vector(x, degree, i, knots):
         ) * (alpha2)
     return B
 
-@TimeRangeDecorator()
+
 def get_star_mask(f):
-    """False where stars are. Keep in mind this might be a bad 
+    """False where stars are. Keep in mind this might be a bad
     set of hard coded parameters for some TESS images!"""
     # This removes pixels where there is a steep flux gradient
-    star_mask = (xp.hypot(*xp.gradient(f)) < 30) & (f <9e4)
+    star_mask = (xp.hypot(*xp.gradient(f)) < 30) & (f < 9e4)
     # This broadens that mask by one pixel on all sides
-    star_mask = ~(xp.asarray(xp.gradient(star_mask.astype(float))) != 0).any(axis=0) & star_mask
+    star_mask = (
+        ~(xp.asarray(xp.gradient(star_mask.astype(float))) != 0).any(axis=0) & star_mask
+    )
     return star_mask
