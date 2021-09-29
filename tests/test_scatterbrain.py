@@ -31,13 +31,13 @@ def test_design_matrix():
 
 def test_backdrop():
     frames = xp.random.normal(size=(2, 2048, 2048)) + 100
-    b = BackDrop(nknots=10)
+    b = BackDrop()
     b.fit_model(frames)
     assert len(b.weights_full) == 2
     assert len(b.weights_basic) == 2
     b.save("backdrop_weights.npz")
     b = BackDrop(column=xp.arange(10), row=xp.arange(9)).load("backdrop_weights.npz")
     model = b.model(0)
-    assert model.shape == (10, 9)
+    assert model.shape == (9, 10)
     if os.path.exists("backdrop_weights.npz"):
         os.remove("backdrop_weights.npz")

@@ -283,7 +283,7 @@ class spline_design_matrix(TESS_design_matrix):
         prior_sigma=None,
         prior_mu=None,
         ccd=3,
-        nknots=60,
+        nknots=40,
         degree=2,
         column=None,
         row=None,

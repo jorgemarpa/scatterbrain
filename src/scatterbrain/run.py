@@ -31,10 +31,12 @@ parser.add_argument(
 args = parser.parse_args()
 
 # set env variable that will be read by the cupy/numpy importer
-os.environ['USE_CUPY'] = str(args.cupy)
+os.environ["USE_CUPY"] = str(args.cupy)
 from backdrop import BackDrop
+
 # import image loader
 from cupy_numpy_imports import load_image
+
 # import numpy or cupy to be used inside this script
 if args.cupy:
     import cupy as xp
@@ -46,24 +48,24 @@ def main():
     nf = args.n_frames
     # These are available to anyone using the jupyter-lab
     if args.load_npy:
-        fnames = glob('/nobackupp12/jimartin/gpu_hack_2021/data/cupy_image_flux_*.npy')
-    else:            
-        fnames = glob('/nobackupp12/chedges/tess/sector01/camera1/ccd1/*ffic.fits.gz')
+        fnames = glob("/nobackupp12/jimartin/gpu_hack_2021/data/cupy_image_flux_*.npy")
+    else:
+        fnames = glob("/nobackupp12/chedges/tess/sector01/camera1/ccd1/*ffic.fits.gz")
     fs = xp.zeros((nf, 2048, 2048), dtype=xp.float32)
-    for tdx, fname in enumerate(tqdm(fnames[:nf], desc='Loading data into memory')):
+    for tdx, fname in enumerate(tqdm(fnames[:nf], desc="Loading data into memory")):
         if args.load_npy:
             fs[tdx] = xp.load(fname)
         else:
             fs[tdx] = load_image(fname)
-        
-    b = BackDrop() 
+
+    b = BackDrop()
     b.fit_model(fs)
     b.save()
-    
+
     print("A      :", type(b.A1.A))
     print("weights:", type(b.weights_basic[0]))
-    
-    
+
+
 if __name__ == "__main__":
     main()
     print("Done!")
