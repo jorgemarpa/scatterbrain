@@ -4,7 +4,6 @@ import fitsio
 
 try:
     if os.getenv("USE_CUPY") in ["True", "T", "true"]:
-        print("Usign Cupy")
         import cupy as xp
         from cupy import sparse
         from cupyx.lapack import posv as cholesky_solve
@@ -12,7 +11,6 @@ try:
         def load_image_cupy(fname):
             return xp.asarray(load_image_numpy(fname))
 
-        @TimeRangeDecorator()
         def load_image(fname):
             return load_image_cupy(fname)
 
@@ -20,7 +18,6 @@ try:
         raise ImportError
 
 except ImportError:
-    print("Usign Numpy")
     import numpy as xp
     from scipy import sparse
 

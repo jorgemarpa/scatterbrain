@@ -5,7 +5,6 @@ try:
     if os.getenv("USE_CUPY") in ["True", "T", "true"]:
         import cupy as xp
         from cupy import sparse
-        from cupy.prof import TimeRangeDecorator
     else:
         raise ImportError
 except ImportError:
