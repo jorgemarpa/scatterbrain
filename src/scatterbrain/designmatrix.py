@@ -37,12 +37,12 @@ class design_matrix(ABC):
     def _validate(self):
         if self.A is None:
             return
-        if isinstance(self.prior_mu, int):
+        if isinstance(self.prior_mu, (int, float)):
             self.prior_mu = xp.ones(self.shape[1]) * self.prior_mu
         else:
             if not self.prior_mu.shape[0] == self.shape[1]:
                 raise ValueError(f"`prior_mu` must be shape {self.shape[1]}")
-        if isinstance(self.prior_sigma, int):
+        if isinstance(self.prior_sigma, (int, float)):
             self.prior_sigma = xp.ones(self.shape[1]) * self.prior_sigma
         else:
             if not self.prior_sigma.shape[0] == self.shape[1]:

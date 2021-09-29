@@ -13,14 +13,19 @@ from .cupy_numpy_imports import *
 
 
 class BackDrop(object):
-    def __init__(self, column=None, row=None, ccd=3, sigma_f=None):
+    def __init__(self, column=None, row=None, ccd=3, sigma_f=None, nknots=40):
         self.A1 = radial_design_matrix(
             column=column, row=row, ccd=ccd, sigma_f=sigma_f, prior_mu=2, prior_sigma=3
         ) + cartesian_design_matrix(
             column=column, row=row, ccd=ccd, sigma_f=sigma_f, prior_mu=2, prior_sigma=3
         )
         self.A2 = spline_design_matrix(
-            column=column, row=row, ccd=ccd, sigma_f=sigma_f, prior_sigma=100
+            column=column,
+            row=row,
+            ccd=ccd,
+            sigma_f=sigma_f,
+            prior_sigma=100,
+            nknots=nknots,
         ) + strap_design_matrix(
             column=column, row=row, ccd=ccd, sigma_f=sigma_f, prior_sigma=100
         )
