@@ -9,47 +9,23 @@ from .designmatrix import (
     strap_design_matrix,
 )
 
-try:
-    import cupy as cp
-
-    def load_image_cupy(fname):
-        return cp.asarray(load_image_numpy(fname))
-
-    def load_image(fname):
-        return load_image_cupy(fname)
-
-
-except ImportError:
-    import numpy as cp
-
-    def load_image(fname):
-        return load_image_numpy(fname)
-
-
-def load_image_numpy(fname):
-    image = np.asarray(fitsio.read(fname)[:2048, 45 : 45 + 2048])
-    image[~np.isfinite(image)] = 1e-5
-    image[image <= 0] = 1e-5
-    return image
-
-
-# try:
-#     import cupy as cp
-#     from cupy import sparse
-# except ImportError:
-#     import numpy as cp
-#     from scipy import sparse
+from .cupy_numpy_imports import *
 
 
 class BackDrop(object):
-    def __init__(self, column=None, row=None, ccd=3, sigma_f=None):
+    def __init__(self, column=None, row=None, ccd=3, sigma_f=None, nknots=40):
         self.A1 = radial_design_matrix(
             column=column, row=row, ccd=ccd, sigma_f=sigma_f, prior_mu=2, prior_sigma=3
         ) + cartesian_design_matrix(
             column=column, row=row, ccd=ccd, sigma_f=sigma_f, prior_mu=2, prior_sigma=3
         )
         self.A2 = spline_design_matrix(
-            column=column, row=row, ccd=ccd, sigma_f=sigma_f, prior_sigma=100
+            column=column,
+            row=row,
+            ccd=ccd,
+            sigma_f=sigma_f,
+            prior_sigma=100,
+            nknots=nknots,
         ) + strap_design_matrix(
             column=column, row=row, ccd=ccd, sigma_f=sigma_f, prior_sigma=100
         )
@@ -74,7 +50,7 @@ class BackDrop(object):
         if frame.shape != (2048, 2048):
             raise ValueError("Pass a frame that is (2048, 2048)")
         star_mask = get_star_mask(frame)
-        sigma_f = cp.ones((2048, 2048))
+        sigma_f = xp.ones((2048, 2048))
         sigma_f[~star_mask] = 1e5
         self.update_sigma_f(sigma_f)
         return
@@ -83,13 +59,13 @@ class BackDrop(object):
         return self.A1.dot(self.w[tdx])
 
     def _fit_basic(self, flux):
-        self.weights_basic.append(self.A1.fit_frame(cp.log10(flux)))
+        self.weights_basic.append(self.A1.fit_frame(xp.log10(flux)))
 
     def _fit_full(self, flux):
         self.weights_full.append(self.A2.fit_frame(flux))
 
     def _model_basic(self, tdx):
-        return cp.power(10, self.A1.dot(self.weights_basic[tdx])).reshape(self.shape)
+        return xp.power(10, self.A1.dot(self.weights_basic[tdx])).reshape(self.shape)
 
     def _model_full(self, tdx):
         return self.A2.dot(self.weights_full[tdx]).reshape(self.shape)
@@ -124,10 +100,10 @@ class BackDrop(object):
         return
 
     def save(self, outfile="backdrop_weights.npz"):
-        cp.savez(outfile, cp.asarray(self.weights_basic), cp.asarray(self.weights_full))
+        xp.savez(outfile, xp.asarray(self.weights_basic), xp.asarray(self.weights_full))
 
     def load(self, infile="backdrop_weights.npz"):
-        cpzfile = cp.load(infile)
+        cpzfile = xp.load(infile)
         self.weights_basic = list(cpzfile["arr_0"])
         self.weights_full = cpzfile["arr_1"]
         if self.column is not None:
