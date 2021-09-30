@@ -4,10 +4,12 @@ import pytest
 
 from scatterbrain import PACKAGEDIR, BackDrop, __version__
 from scatterbrain.cupy_numpy_imports import fitsio, np, xp
-from scatterbrain.designmatrix import (cartesian_design_matrix,
-                                       radial_design_matrix,
-                                       spline_design_matrix,
-                                       strap_design_matrix)
+from scatterbrain.designmatrix import (
+    cartesian_design_matrix,
+    radial_design_matrix,
+    spline_design_matrix,
+    strap_design_matrix,
+)
 
 
 def is_action():

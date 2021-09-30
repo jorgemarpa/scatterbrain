@@ -1,8 +1,12 @@
 from tqdm import tqdm
 
 from .cupy_numpy_imports import np, xp
-from .designmatrix import (cartesian_design_matrix, radial_design_matrix,
-                           spline_design_matrix, strap_design_matrix)
+from .designmatrix import (
+    cartesian_design_matrix,
+    radial_design_matrix,
+    spline_design_matrix,
+    strap_design_matrix,
+)
 from .utils import get_sat_mask, get_star_mask
 
 
