@@ -7,7 +7,6 @@ try:
     if os.getenv("USE_CUPY") in ["True", "T", "true"]:
         import cupy as xp
         from cupy import sparse
-        from cupyx.lapack import posv as cholesky_solve
 
         def load_image_cupy(fname):
             return xp.asarray(load_image_numpy(fname))
@@ -21,8 +20,6 @@ try:
 except ImportError:
     import numpy as xp
     from scipy import sparse
-
-    cholesky_solve = np.linalg.solve
 
     def load_image(fname):
         return load_image_numpy(fname)

@@ -102,6 +102,16 @@ class design_matrix(ABC):
         )
         return cholesky_solve(self.sigma_w_inv, B)
 
+    def fit_batch(self, flux_cube):
+        B = xp.asarray(
+            [
+                self.AT.dot(flux.ravel() / self.sigma_f)
+                + self.prior_mu / self.prior_sigma ** 2
+                for flux in flux_cube
+            ]
+        ).T
+        return xp.linalg.solve(self.sigma_w_inv, B).T
+
     def dot(self, other):
         return self.A.dot(other)
 
