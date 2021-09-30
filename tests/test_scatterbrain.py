@@ -1,7 +1,5 @@
 import os
 
-import pytest
-
 from scatterbrain import PACKAGEDIR, BackDrop, __version__
 from scatterbrain.cupy_numpy_imports import fitsio, np, xp
 from scatterbrain.designmatrix import (
@@ -10,13 +8,6 @@ from scatterbrain.designmatrix import (
     spline_design_matrix,
     strap_design_matrix,
 )
-
-
-def is_action():
-    try:
-        return os.environ["GITHUB_ACTIONS"]
-    except KeyError:
-        return False
 
 
 def test_version():
@@ -64,9 +55,6 @@ def test_backdrop_cutout():
     assert b.average_frame.shape == (128, 128)
 
 
-@pytest.mark.skipif(
-    is_action(), reason="Can not run on GitHub actions, because file too large."
-)
 def test_backdrop():
     fname = "/".join(PACKAGEDIR.split("/")[:-2]) + "/tests/data/tempffi.fits"
     print(fname)
