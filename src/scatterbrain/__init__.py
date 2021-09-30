@@ -5,5 +5,5 @@ from __future__ import absolute_import
 import os
 
 PACKAGEDIR = os.path.abspath(os.path.dirname(__file__))
-from .backdrop import BackDrop
+from .backdrop import BackDrop  # noqa
 from .version import __version__  # noqa

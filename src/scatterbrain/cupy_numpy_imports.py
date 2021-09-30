@@ -1,5 +1,5 @@
+# flake8: noqa
 import os
-
 import fitsio
 import numpy as np
 

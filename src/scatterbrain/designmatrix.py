@@ -2,7 +2,7 @@
 from abc import ABC, abstractmethod
 from copy import deepcopy
 
-from .cupy_numpy_imports import *
+from .cupy_numpy_imports import sparse, xp
 from .utils import _spline_basis_vector
 
 
@@ -100,7 +100,7 @@ class design_matrix(ABC):
             self.AT.dot(flux.ravel() / self.sigma_f)
             + self.prior_mu / self.prior_sigma ** 2
         )
-        return cholesky_solve(self.sigma_w_inv, B)
+        return xp.linalg.solve(self.sigma_w_inv, B)
 
     def fit_batch(self, flux_cube):
         B = xp.asarray(

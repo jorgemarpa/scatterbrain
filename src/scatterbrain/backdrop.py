@@ -1,14 +1,13 @@
-import numpy as np
 from tqdm import tqdm
 
-from .cupy_numpy_imports import *
+from .cupy_numpy_imports import np, xp
 from .designmatrix import (
     cartesian_design_matrix,
     radial_design_matrix,
     spline_design_matrix,
     strap_design_matrix,
 )
-from .utils import get_star_mask, get_sat_mask
+from .utils import get_sat_mask, get_star_mask
 
 
 class BackDrop(object):
@@ -96,9 +95,6 @@ class BackDrop(object):
         else:
             self.jitter_mask = (~star_mask & sat_mask).copy()
         return
-
-    def model(tdx):
-        return self.A1.dot(self.w[tdx])
 
     def _fit_basic(self, flux):
         self.weights_basic.append(self.A1.fit_frame(xp.log10(flux)))
