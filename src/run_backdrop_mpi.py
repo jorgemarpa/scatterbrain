@@ -51,10 +51,10 @@ if args.verbose:
 
 # set env variable that will be read by the cupy/numpy importer
 os.environ["USE_CUPY"] = str(args.cupy)
-from scatterbrain.backdrop import BackDrop
+from scatterbrain import BackDrop
 
 # import image loader
-from scatterbrain.cupy_numpy_imports import *
+from scatterbrain.cupy_numpy_imports import load_image_numpy, np, xp
 
 log.info(f"Using {xp.__file__.split('/')[-2]}")
 
@@ -74,9 +74,6 @@ def main():
         comm = None
         rank = 0
         size = 1
-    time_mpi_init = time.time()
-    # if rank == 0:
-    # log.info(f"time mpi init: {time_mpi_init-time_start:.4f} s")
 
     # Initialize list of frames on rank 0
     if rank == 0:
@@ -89,9 +86,6 @@ def main():
 
     else:
         fnames = None
-    time_fnames_init = time.time()
-    # if rank == 0:
-    # log.info(f"time fnames init: {time_fnames_init-time_mpi_init:.4f} s")
 
     # Broadcast filenames to all other ranks
     if comm is not None:
@@ -99,9 +93,6 @@ def main():
     else:
         # nothing to do if we are not using mpi
         pass
-    time_fnames_bcast = time.time()
-    # if rank == 0:
-    # log.info(f"time fnames bcast: {time_fnames_bcast-time_fnames_init:.4f} s")
 
     num_files = len(fnames)
     frames_per_rank = args.frames_per_rank
@@ -111,7 +102,6 @@ def main():
 
     # read and process files in batches
     for batch_index in range(num_batches):
-        time_batch_start = time.time()
         batch_start = batch_index * batch_size
         batch_stop = min((batch_index + 1) * batch_size, num_files)
         batch_fnames = fnames[batch_start:batch_stop]
@@ -129,7 +119,9 @@ def main():
         if rank < len(batch_fnames):
             # Each rank reads a different filename
             for i, fname in enumerate(batch_fnames[rank::size]):
-                log.info(f"{batch_index=} rank {rank} will read: {fname}")
+                log.info(
+                    f"{batch_index=} rank {rank} will read: {os.path.basename(fname)}"
+                )
                 frame = load_image_numpy(fname)
                 if args.buffer_gather:
                     sendbuf[i] = frame
@@ -145,9 +137,6 @@ def main():
         # or only relevant to rank 0
         if comm is not None:
             comm.barrier()
-        time_batch_load = time.time()
-        # if rank == 0:
-        # log.info(f"time batch load: {time_batch_load-time_batch_start:.4f} s")
 
         # gather frames to rank 0
         if comm is not None:
@@ -168,10 +157,6 @@ def main():
         else:
             frames = np.stack(frames)
 
-        time_batch_gather = time.time()
-        # if rank == 0:
-        # log.info(f"time batch gather: {time_batch_gather-time_batch_load:.4f} s")
-
         if rank == 0:
             # send to GPU if asked
             if args.cupy:
@@ -180,19 +165,10 @@ def main():
             # process frames on rank 0 / perform back drop here
             log.info(f"frame array is of {type(frames)}")
             b.fit_model(frames)
-            b.save(outfile=f"../outputs/backdrop_weights_batch{batch_index:03}.npz")
-
-            # log.info(f"A      : {type(b.A1.A)}")
-            # log.info(f"weights: {type(b.weights_basic[0])}")
+            # b.save(outfile=f"../outputs/backdrop_weights_batch{batch_index:03}.npz")
         else:
             # other ranks have nothing to do
             pass
-
-        time_batch_process = time.time()
-        # if rank == 0:
-        # log.info(
-        #     f"time batch process: {time_batch_process-time_batch_gather:.4f} s"
-        # )
 
     time_end = time.time()
     if rank == 0:

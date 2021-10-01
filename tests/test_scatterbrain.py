@@ -9,9 +9,6 @@ from scatterbrain.designmatrix import (
     strap_design_matrix,
 )
 
-from scatterbrain import PACKAGEDIR, BackDrop, __version__
-from scatterbrain.designmatrix import *
-
 
 def test_version():
     assert __version__ == "0.1.0"
