@@ -1,8 +1,9 @@
 import os
 
-from scatterbrain import BackDrop, __version__, PACKAGEDIR
-from scatterbrain.designmatrix import *
 import fitsio
+
+from scatterbrain import PACKAGEDIR, BackDrop, __version__
+from scatterbrain.designmatrix import *
 
 
 def test_version():

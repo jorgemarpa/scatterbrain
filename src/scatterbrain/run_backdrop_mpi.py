@@ -2,10 +2,10 @@
 
 import argparse
 import glob
+import logging
 import os
 import sys
 import time
-import logging
 
 import cupy as cp
 import numpy as np
@@ -14,22 +14,40 @@ log = logging.getLogger(__name__)
 
 N = 2048
 
+
 def main():
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--cupy", dest="cupy", action="store_true", default=False, help="use Cupy, default is numpy")
+    parser.add_argument(
+        "--cupy",
+        dest="cupy",
+        action="store_true",
+        default=False,
+        help="use Cupy, default is numpy",
+    )
     parser.add_argument("--mpi", action="store_true", help="use mpi")
-    parser.add_argument("--max-frames", type=int, default=0, help="maximum number of frames to process")
-    parser.add_argument("--frames-per-rank", type=int, default=1, help="number of frames per rank to use in each batch")
-    parser.add_argument("--buffer-gather", action="store_true", help="use buffer objects to gather frames")
+    parser.add_argument(
+        "--max-frames", type=int, default=0, help="maximum number of frames to process"
+    )
+    parser.add_argument(
+        "--frames-per-rank",
+        type=int,
+        default=1,
+        help="number of frames per rank to use in each batch",
+    )
+    parser.add_argument(
+        "--buffer-gather",
+        action="store_true",
+        help="use buffer objects to gather frames",
+    )
     parser.add_argument("--verbose", action="store_true", help="print info")
     args = parser.parse_args()
 
     if args.verbose:
         logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-        
+
     # set env variable that will be read by the cupy/numpy importer
-    os.environ['USE_CUPY'] = str(args.cupy)
+    os.environ["USE_CUPY"] = str(args.cupy)
     from backdrop import BackDrop
     # import image loader
     from cupy_numpy_imports import load_image, load_image_numpy
@@ -38,6 +56,7 @@ def main():
     if args.mpi:
         # initialize mpi if requested
         from mpi4py import MPI
+
         comm = MPI.COMM_WORLD
         rank = comm.rank
         size = comm.size
@@ -53,14 +72,14 @@ def main():
     # Initialize list of frames on rank 0
     if rank == 0:
         # fnames = glob.glob('/nobackupp12/chedges/tess/sector01/camera1/ccd1/*ffic.fits.gz')
-        fnames = glob.glob('/nobackupp19/chedges/hackday/ccd1/*ffic.fits.gz')
+        fnames = glob.glob("/nobackupp19/chedges/hackday/ccd1/*ffic.fits.gz")
         # fnames = list(range(1234))
         if args.max_frames > 0:
-            fnames = fnames[:args.max_frames]
+            fnames = fnames[: args.max_frames]
 
         # init backdrop in rank 0
         b = BackDrop()
-        
+
     else:
         fnames = None
     time_fnames_init = time.time()
@@ -79,7 +98,7 @@ def main():
 
     num_files = len(fnames)
     frames_per_rank = args.frames_per_rank
-    batch_size = frames_per_rank*size
+    batch_size = frames_per_rank * size
     # round up in case batch_size does not evenly divide num_files
     num_batches = (num_files + batch_size - 1) // batch_size
 
@@ -91,15 +110,14 @@ def main():
         batch_fnames = fnames[batch_start:batch_stop]
 
         if args.buffer_gather:
-            sendbuf = np.zeros((frames_per_rank, N, N), dtype='i')
+            sendbuf = np.zeros((frames_per_rank, N, N), dtype="i")
             if rank == 0:
-                recvbuf = np.empty([size, frames_per_rank, N, N], dtype='i')
+                recvbuf = np.empty([size, frames_per_rank, N, N], dtype="i")
             else:
                 # other ranks do not need a receive buffer
                 recvbuf = None
         else:
             frames = []
-
 
         if rank < len(batch_fnames):
             # Each rank reads a different filename
@@ -142,7 +160,7 @@ def main():
                     pass
         else:
             frames = np.stack(frames)
-    
+
         time_batch_gather = time.time()
         if rank == 0:
             log.info(f"time batch gather: {time_batch_gather-time_batch_load:.4f} s")
@@ -151,15 +169,17 @@ def main():
             # process frames on rank 0 / perform back drop here
             # result = np.average(frames, axis=(-2, -1))
             # log.info(f"{batch_index=} {result}")
-            
+
             if args.cupy:
                 frames = cp.array(frames)
 
             # do backdrop
             log.info(type(frames))
             b.fit_model(frames)
-            b.save(outfile=f"backdrop_output/backdrop_weights_batch{batch_index:03}.npz")
-            
+            b.save(
+                outfile=f"backdrop_output/backdrop_weights_batch{batch_index:03}.npz"
+            )
+
             log.info(f"A      : {type(b.A1.A)}")
             log.info(f"weights: {type(b.weights_basic[0])}")
         else:
@@ -168,7 +188,9 @@ def main():
 
         time_batch_process = time.time()
         if rank == 0:
-            log.info(f"time batch process: {time_batch_process-time_batch_gather:.4f} s")
+            log.info(
+                f"time batch process: {time_batch_process-time_batch_gather:.4f} s"
+            )
 
     time_end = time.time()
     if rank == 0:
