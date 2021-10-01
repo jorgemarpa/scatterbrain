@@ -12,6 +12,7 @@
 * loading and saving
 * add radial spline dm
 * add cholesky batch solve
+* check mpi-gupy integration in `run_backdrop_mpi.mpi`
 
 # MPI instructions
 
