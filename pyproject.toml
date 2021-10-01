@@ -17,6 +17,7 @@ pytest = "^5.2"
 jupyterlab = "^3.1.14"
 isort = "^5.9.3"
 flake8 = "^3.9.2"
+mpi4py = "^3.1.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
