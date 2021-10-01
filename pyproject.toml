@@ -17,7 +17,7 @@ pytest = "^5.2"
 jupyterlab = "^3.1.14"
 isort = "^5.9.3"
 flake8 = "^3.9.2"
-mpi4py = "^3.1.0" # this requieres MPI, e.g. openmpi
+# mpi4py = "^3.1.0" # this requieres MPI, e.g. openmpi
 # this requieres CUDA drivers and the cupy library is sepcofied by the CUDA version
 # don't know how poetry will manage this
 # cupy-cuda110 = "^9.4.0"
