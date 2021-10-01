@@ -1,15 +1,5 @@
 """basic hack utilities"""
-import os
-
-try:
-    if os.getenv("USE_CUPY") in ["True", "T", "true"]:
-        import cupy as xp
-        from cupy import sparse
-    else:
-        raise ImportError
-except ImportError:
-    import numpy as xp
-    from scipy import sparse
+from .cupy_numpy_imports import xp
 
 
 def _spline_basis_vector(x, degree, i, knots):
