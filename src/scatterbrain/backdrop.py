@@ -1,9 +1,12 @@
-import numpy as np
 from tqdm import tqdm
 
-from .cupy_numpy_imports import *
-from .designmatrix import (cartesian_design_matrix, radial_design_matrix,
-                           spline_design_matrix, strap_design_matrix)
+from .cupy_numpy_imports import np, xp
+from .designmatrix import (
+    cartesian_design_matrix,
+    radial_design_matrix,
+    spline_design_matrix,
+    strap_design_matrix,
+)
 from .utils import get_sat_mask, get_star_mask
 
 
@@ -93,9 +96,6 @@ class BackDrop(object):
             self.jitter_mask = (~star_mask & sat_mask).copy()
         return
 
-    def model(tdx):
-        return self.A1.dot(self.w[tdx])
-
     def _fit_basic(self, flux):
         self.weights_basic.append(self.A1.fit_frame(xp.log10(flux)))
 
@@ -135,6 +135,45 @@ class BackDrop(object):
         self._build_masks(flux_cube[test_frame])
         for flux in tqdm(flux_cube, desc="Fitting Frames"):
             self.fit_frame(flux)
+
+    def _fit_basic_batch(self, flux):
+        # weights = list(self.A1.fit_batch(xp.log10(flux)))
+        return self.A1.fit_batch(xp.log10(flux))
+
+    def _fit_full_batch(self, flux):
+        #        weights = list(self.A2.fit_batch(flux))
+        return self.A2.fit_batch(flux)
+
+    def _fit_batch(self, flux_cube):
+        weights_basic = self._fit_basic_batch(flux_cube)
+        for tdx in range(len(weights_basic)):
+            flux_cube[tdx] -= xp.power(10, self.A1.dot(weights_basic[tdx])).reshape(
+                self.shape
+            )
+        weights_full = self._fit_full_batch(flux_cube)
+
+        for tdx in range(len(weights_basic)):
+            flux_cube[tdx] += xp.power(10, self.A1.dot(weights_basic[tdx])).reshape(
+                self.shape
+            )
+        return weights_basic, weights_full
+
+    def fit_model_batched(self, flux_cube, batch_size=50, test_frame=0):
+        if flux_cube.ndim != 3:
+            raise ValueError("`flux_cube` must be 3D")
+        self._build_masks(flux_cube[test_frame])
+        nbatches = xp.ceil(flux_cube.shape[0] / batch_size).astype(int)
+        weights_basic, weights_full = [], []
+        l = xp.arange(0, nbatches + 1, dtype=int) * batch_size
+        if l[-1] > flux_cube.shape[0]:
+            l[-1] = flux_cube.shape[0]
+        for l1, l2 in zip(l[:-1], l[1:]):
+            w1, w2 = self._fit_batch(flux_cube[l1:l2])
+            weights_basic.append(w1)
+            weights_full.append(w2)
+        self.weights_basic = list(xp.vstack(weights_basic))
+        self.weights_full = list(xp.vstack(weights_full))
+        return
 
     @property
     def shape(self):

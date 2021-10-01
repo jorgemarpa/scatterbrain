@@ -1,6 +1,13 @@
 import os
 
-import fitsio
+from scatterbrain import PACKAGEDIR, BackDrop, __version__
+from scatterbrain.cupy_numpy_imports import fitsio, np, xp
+from scatterbrain.designmatrix import (
+    cartesian_design_matrix,
+    radial_design_matrix,
+    spline_design_matrix,
+    strap_design_matrix,
+)
 
 from scatterbrain import PACKAGEDIR, BackDrop, __version__
 from scatterbrain.designmatrix import *
@@ -12,6 +19,7 @@ def test_version():
 
 def test_design_matrix():
     frame = xp.random.normal(size=(9, 10))
+    cube = xp.asarray([xp.random.normal(size=(9, 10))])
     for dm in [
         cartesian_design_matrix,
         radial_design_matrix,
@@ -29,6 +37,7 @@ def test_design_matrix():
         assert isinstance(A.join(A), dm)
         A = dm(column=xp.arange(10), row=xp.arange(9), prior_sigma=1e5)
         A.fit_frame(frame)
+        A.fit_batch(cube)
         A = dm(cutout_size=128)
         assert A.shape[0] == 128 ** 2
 
@@ -40,6 +49,7 @@ def test_backdrop_cutout():
     frames = xp.asarray([f, f], dtype=xp.float32)
     b = BackDrop(cutout_size=128)
     b.fit_model(frames)
+    b.fit_model_batched(frames, batch_size=2)
     assert len(b.weights_full) == 2
     assert len(b.weights_basic) == 2
     model = b.model(0)
@@ -55,6 +65,7 @@ def test_backdrop():
     frames = xp.asarray([f, f], dtype=xp.float32)
     b = BackDrop()
     b.fit_model(frames)
+    b.fit_model_batched(frames, batch_size=2)
     assert len(b.weights_full) == 2
     assert len(b.weights_basic) == 2
     b.save("backdrop_weights.npz")
