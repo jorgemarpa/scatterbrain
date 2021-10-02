@@ -37,10 +37,17 @@ parser.add_argument(
 )
 parser.add_argument("--verbose", action="store_true", default=False, help="print info")
 parser.add_argument(
-    "--file-path",
+    "--in-dir",
     type=str,
-    dest="file_path",
+    dest="in_dir",
     default="/nobackupp19/chedges/hackday/ccd1/",
+    help="path to directory with files",
+)
+parser.add_argument(
+    "--out-dir",
+    type=str,
+    dest="out_dir",
+    default="./outputs/",
     help="path to directory with files",
 )
 args = parser.parse_args()
@@ -51,12 +58,10 @@ if args.verbose:
 
 # set env variable that will be read by the cupy/numpy importer
 os.environ["USE_CUPY"] = str(args.cupy)
-from scatterbrain import BackDrop
+from scatterbrain import BackDrop, PACKAGEDIR
 
 # import image loader
 from scatterbrain.cupy_numpy_imports import load_image_numpy, np, xp
-
-log.info(f"Using {xp.__file__.split('/')[-2]}")
 
 
 def main():
@@ -77,13 +82,13 @@ def main():
 
     # Initialize list of frames on rank 0
     if rank == 0:
-        fnames = glob.glob(f"{args.file_path}/*ffic.fits.gz")
+        log.info(f"Using {xp.__file__.split('/')[-2]}")
+        fnames = glob.glob(f"{args.in_dir}/*ffic.fits.gz")
         if args.max_frames > 0:
             fnames = fnames[: args.max_frames]
 
         # init backdrop in rank 0
         b = BackDrop()
-
     else:
         fnames = None
 
@@ -161,11 +166,14 @@ def main():
             # send to GPU if asked
             if args.cupy:
                 frames = xp.array(frames)
-
+            # result = xp.average(frames, axis=(-2, -1))
+            # print(f"{batch_index=} {result}")
             # process frames on rank 0 / perform back drop here
             log.info(f"frame array is of {type(frames)}")
             b.fit_model(frames)
-            # b.save(outfile=f"../outputs/backdrop_weights_batch{batch_index:03}.npz")
+            b.save(
+                outfile=f"{args.out_dir}/" f"backdrop_weights_batch{batch_index:03}.npz"
+            )
         else:
             # other ranks have nothing to do
             pass

@@ -76,9 +76,9 @@ Now you are ready to run `scatterbrain` with MPI.
 To run one of the `run_backdrop*.py` scripts that fit background models to TESS FFIs using MPI use the following command on your local terminal:
 
 ```sh
-foo@bar:~$ mpiexec -n 4 python run_backdrop_mpi.py [program arguments]
+foo@bar:~$ mpiexec -n 4 python run_backdrop_mpi.py --mpi [program arguments]
 ```
-where the `-n 4` flag sets the number of ranks to be used.
+where the `-n 4` flag sets the number of ranks to be used and the `--mpi` flat let the python program know that MPI is enable.
 
 # CUDA instructions
 
@@ -114,5 +114,5 @@ If using one of the `run_backdrop*.py` scripts that fit background models to TES
 To fit new FFI-background model you can combine the power of parallel IO and GPU computing by using the following command:
 
 ```sh
-mpiexec -n 4 python run_backdrop_mpi.py --cupy [program arguments]
+mpiexec -n 4 python run_backdrop_mpi.py --mpi --cupy [program arguments]
 ```
