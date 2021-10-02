@@ -41,14 +41,14 @@ parser.add_argument(
     type=str,
     dest="in_dir",
     default="/nobackupp19/chedges/hackday/ccd1/",
-    help="path to directory with files",
+    help="path to directory with input FITS files",
 )
 parser.add_argument(
     "--out-dir",
     type=str,
     dest="out_dir",
     default="./outputs/",
-    help="path to directory with files",
+    help="path to directory to save output files",
 )
 args = parser.parse_args()
 

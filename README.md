@@ -14,6 +14,34 @@
 * add cholesky batch solve
 * check mpi-gupy integration in `run_backdrop_mpi.mpi`
 
+# Command Line Usage
+
+We include a python program that allows you to use `scatterbrain` to model the background signal from FFIs and save the model data (weights) to be used later for cutout's background estimation.
+
+The script is `run_backdrop_mpi.py` and has the following arguments:
+```
+  -h, --help            show this help message and exit
+  --cupy                use Cupy, default is numpy
+  --mpi                 use mpi
+  --max-frames          maximum number of frames to process
+  --frames-per-rank     number of frames per rank to use in each batch
+  --buffer-gather       use buffer objects to gather frames
+  --verbose             print info to stdout
+  --in-dir IN_DIR       path to directory with FITS files
+  --out-dir OUT_DIR     path to directory to save output files
+```
+The `--cupy` and `--mpi` flags enable the CUDA and MPI. See below more details.
+
+The `--in-dir` and `--out-dir` are path to the input FITS directory and output saved models, respectively.
+
+The `--max-frames` flag sets the maximum number of frames (files inside `--in-dir`) to be used, this flag is meant for developing purposes and should be set to the total number of frames/cadences (e.g. 1238) in a ccd. Default is `0` and means use all available frames.
+
+If no MPI (aka single process), the `--frames-per-rank` flag sets the number of frames that will be used for a batch of BackDrop computation. If `--mpi` is on, then the number of frames is `n_ranks * frames_per_rank` (aka the "batch size"), e.g. if we use 2 ranks and 5 frames per rank, then BackDrop will fit a batch of 10 frames.
+
+The `--buffer-gather` flag enables buffer objects gathering from `mpi4py`. See the [documentation](https://mpi4py.readthedocs.io/en/stable/tutorial.html) for more info. Buffering can speed up gathering some times, but be aware that in this mode if the total number of frames (`--max-frames`) is not divisible by the batch size (`n_ranks * frames_per_rank`), the last batch will be smaller and contain zeros at the end.
+
+The `--verbose` flag enables prints to the standard output.
+
 # MPI instructions
 
 `scatterbrain` includes the option to use MPI to do parallel IO of FITS files. This feature is only available when computing new background models from TESS full frame images using the `run_backdrop_mpi.py` script. Note that only IO is done in parallel, other functionalities (e.g. BackDrop) run in a single CPU.
