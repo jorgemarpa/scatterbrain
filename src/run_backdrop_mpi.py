@@ -8,7 +8,7 @@ import sys
 import time
 
 log = logging.getLogger(__name__)
-# image size
+# TESS image size
 N = 2048
 
 parser = argparse.ArgumentParser()
@@ -112,9 +112,9 @@ def main():
         batch_fnames = fnames[batch_start:batch_stop]
 
         if args.buffer_gather:
-            sendbuf = np.zeros((frames_per_rank, N, N), dtype="i")
+            sendbuf = np.zeros((frames_per_rank, N, N), dtype=np.float64)
             if rank == 0:
-                recvbuf = np.empty([size, frames_per_rank, N, N], dtype="i")
+                recvbuf = np.empty([size, frames_per_rank, N, N], dtype=np.float64)
             else:
                 # other ranks do not need a receive buffer
                 recvbuf = None
