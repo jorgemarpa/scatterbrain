@@ -58,7 +58,7 @@ if args.verbose:
 
 # set env variable that will be read by the cupy/numpy importer
 os.environ["USE_CUPY"] = str(args.cupy)
-from scatterbrain import BackDrop, PACKAGEDIR
+from scatterbrain import BackDrop
 
 # import image loader
 from scatterbrain.cupy_numpy_imports import load_image_numpy, np, xp
